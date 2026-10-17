@@ -10,163 +10,104 @@
 #******************************************************************************/
 #include <iostream>
 #include <iomanip>
-#include <limits>
+#include <cstring>
 using namespace std;
 
 // display constant variables
-const double ASSIGNMENT_WEIGHT = 0.6;
-const double EXAM_WEIGHT = 0.2;
+const int MAXCHAR = 51;
+const int CAP = 20;
+const int MAXSTUDENTS = 25;
 
 // display function prototypes
 void welcome();
-void readScore(string prompt, double &num);
-void getInput(double &midtermScore, double &finalExamScore);
-void calcLetterGrade(double finalScore, char &letter);
+void readInput(char courseNums[][MAXCHAR], int students[], int &count);
+void readInt(string prompt, int &num);
+void printList(char courseNums[][MAXCHAR], int students[], int count);
+void cancelCourses(char courseNums[][MAXCHAR], int students[], int &count);
+int main();
 
-int readInt(string prompt);
-
-double getScoreInRange(string prompt);
-double assignAverage(int numAssigns);
-double calcFinalScore(double assignAvg, double midterm, double final);
-
-// start main function
-int main() {
-  welcome();
-
-  double assignAvg = 0.0;
-  double midtermExamScore = 0.0;
-  double finalExamScore = 0.0;
-  double finalScore;
-
-  int numberOfAssignments = 0;
-  bool next = true;
-  while(next) {
-    numberOfAssignments = readInt("Enter the number of assignments (0 to 10): ");
-    if(0 <= numberOfAssignments 
-       and 
-       numberOfAssignments <= 10) {
-      next = false;
-    } else {
-      cout << "Illegal Value! Please try again!!" << endl;
-    }
-  }
-
-  assignAvg = assignAverage(numberOfAssignments);
-  getInput(midtermExamScore, finalExamScore);
-
-  cout << fixed << setprecision(1);
-  double decimalGrade = calcFinalScore(assignAvg, midtermExamScore, finalExamScore);
-  cout << "\nYour Final Numeric score is " << decimalGrade << endl;
-
-  char letter = '\0';
-  calcLetterGrade(decimalGrade, letter);
-  cout << "Your Final Grade is " << letter << endl;
-
-  cout << "\nThank you for using my Grade Calculator!" << endl;
-
-  return 0;
+//start of bulk functions
+void welcome(){
+    cout << "Welcome to my Course Rosters program!!" << endl;
+    cout << "\nEnter course number and students enrolled when prompted. Enter Quit"
+    "or quit for course number when you are done." << endl;
+    cout << endl;
 }
 
-// welcome function
-void welcome() {
-  cout << "Welcome to the Grade Calculation Program!" << endl;
-  cout << "Please enter the following information and I will calculate your" << endl;
-  cout << "Final Numerical Grade and Letter Grade for you!" << endl;
-  cout << "The number of assignments must be between 0 and 10." << endl;
-  cout << "All scores entered must be between 0 and 4." << endl;
-  cout << endl;
-}
-
-// read number of assignments
-int readInt(string prompt) {
-   int numAssigns = 0;
-   bool next = true;
+void readInput(char courseNums[][MAXCHAR], int students[], int &count){
+    char tempName[MAXCHAR] = {0};
+    int i = 0;
     
-   while (next) {
-      cout << prompt;
-      cin >> numAssigns;
-      if (cin && numAssigns >= 0) {
-            next = false;
-      } else {
-          cin.clear();
-          cin.ignore(numeric_limits<streamsize>::max(), '\n');
-      }
+    count = 0;
+    cout << "Enter course number: ";
+    cin.getline(tempName, MAXCHAR);
+    while(strcmp(tempName, "quit") != 0 && strcmp(tempName, "Quit") != 0){
+        if (count < CAP){
+            strcpy(courseNums[count], tempName);
+            readInt("Number of students enrolled: ", students[count]);
+            while(students[count] > 25){
+                cout << "Invalid number!! Please enter a number between 0 and 25" << endl;
+                readInt("Number of students enrolled: ", students[count]);
+            }
+        }else{
+            cout << "List full!" << endl;
+            break;
+        }
+        cout << "Enter course number: ";
+        cin.getline(tempName, MAXCHAR);
+        while(i < count && strcmp(courseNums[i], tempName) < 0){
+            i++;
+        }
+        for(int j = count; j > i; j--){
+            strcpy(courseNums[j], courseNums[j-1]);
+        }
+        strcpy(courseNums[i], tempName);
+        count++;
+        cin.getline(tempName, MAXCHAR);
     }
-  return numAssigns;
 }
 
-// read assignment scores
-void readScore(string prompt, double &num) {
-  bool next = true;
-    
-  while (next) {
-      cout << prompt;
-      cin >> num;
-      if (cin) {
-          next = false;
-      } else {
-          cin.clear();
-          cin.ignore(numeric_limits<streamsize>::max(), '\n');
-      }
-  }
-}
+void readInt(string prompt, int &num){
+    int tempVar = 0;
 
-// check scores are in proper range
-double getScoreInRange(string prompt) {
-    double score = 0.0;
-    bool next = true;
-    double num;
-    while(next) {
-      readScore(prompt, num);
-      score = num;
-      if(0.0 <= score and score <= 4.0) {
-        next = false;
-      } else {
-        cout << "Illegal Score! Please try again!" << endl;
-      }
+    cout << prompt;
+    cin >> tempVar;
+    while(!cin){
+        cout << "Invalid input! Please try again!!" << endl;
+        cin.clear();
+        cin.ignore(100, '\n');
+        cin >> tempVar;
     }
-    return score;
+    cin.ignore(10, '\n');
 }
 
-// assign averages
-double assignAverage(int numAssigns) {
-  double sum = 0.0;
-  double avg = 0.0;
-
-  for(int i = 1; i <= numAssigns; i++) {
-    string promptScore = "Enter score " + to_string(i) + ": ";
-    double score = getScoreInRange(promptScore);
-    sum += score;
-  }
-  avg = sum / numAssigns;
-  return avg;
+void printList(char courseNums[][MAXCHAR], int students[], int count){
+    for (int i = 0; i < count; i++){
+        cout << courseNums[i] << ": " << students[i] << endl;
+    }
 }
 
-void getInput(double &midtermExamScore, double &finalExamScore) {
-  midtermExamScore = getScoreInRange("\nEnter your midterm exam score: ");
-  finalExamScore = getScoreInRange("Enter your final exam score: ");
+void cancelCourses(char courseNums[][MAXCHAR], int students[], int &count){
+    for(int i = 0; i < count - 1; i++){
+        if (students[i] < 10){
+            students[i] = students[i + 1];
+            courseNums[i][MAXCHAR] = courseNums[i + 1][MAXCHAR];
+            --count;
+        }
+    }
 }
 
-// calculate final score numeric
-double calcFinalScore(double assignAvg, double midterm, double final){
-  double finalScore = 0.0;
-  finalScore += assignAvg * ASSIGNMENT_WEIGHT;
-  finalScore += midterm * EXAM_WEIGHT;
-  finalScore += final * EXAM_WEIGHT;
-  return finalScore;
-}
+int main(){
+    char courseNums[CAP][MAXCHAR];
+    int students[MAXSTUDENTS];
+    int count;
 
-// calculate final letter grade
-void calcLetterGrade(double finalScore, char &letter){
-  if(finalScore >= 3.3) {
-    letter = 'A';
-  } else if(finalScore >= 2.8) {
-    letter = 'B';
-  } else if(finalScore >= 2.0) {
-    letter = 'C';
-  } else if(finalScore >= 1.2) {
-    letter = 'D';
-  } else {
-    letter = 'F';
-  }
+    welcome();
+    readInput(courseNums, students, count);
+    printList(courseNums, students, count);
+    cancelCourses(courseNums, students, count);
+    printList(courseNums, students, count);
+
+    cout << "\nThank you for checking our my Course Rosters Program!" << endl;
+
 }
